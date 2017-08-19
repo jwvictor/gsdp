@@ -1,0 +1,208 @@
+/* Copyright (C) 2017 Jason Vitor
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the Modified BSD License.
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+
+ * You should have received a copy of the Modified BSD License
+ * along with this program.  If not, see
+ * <https://opensource.org/licenses/BSD-3-Clause>
+ */
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.gsdp";
+option java_outer_classname = "GsdProtocol";
+
+package gsdprotocol;
+
+// The GSDP service definition.
+service GSDP {
+  // Sends a request for permissions 
+  rpc Sup (RequestPermissions) returns (UserPermissions) {}
+  // Starts a block 
+  rpc StartBlock (BlockStartRequest) returns (BlockStatusChangeResponse) {}
+  // Leaves a block 
+  rpc LeaveBlock (BlockLeaveRequest) returns (BlockStatusChangeResponse) {}
+  // Notifies approval of permissions 
+  rpc K (ApprovePermissions) returns (UserPermissions) {}
+  // Notifies removal or modification of permissions 
+  rpc Btw (ApprovePermissions) returns (MessageAck) {}
+  // Transmits a message object (data) 
+  rpc Say (RawMessage) returns (MessageAck) {}
+  // Name server requests
+  rpc Name (NameInquiry) returns (NameResponse) {}
+  // Retrieve
+  rpc GetMine (GetRequest) returns (PendingData) {}
+}
+
+message Identity {
+  bytes ident = 1;
+  string handle = 2;
+  string name = 3;
+  string domain = 4;
+  bytes pub_key = 5;
+  string profile_url = 6;
+}
+
+// Client side request: get your updates. 
+message GetRequest {
+  Identity from_ident = 1;
+  int64 since_utc = 2;
+  bool purge = 3;
+  int64 tstamp = 4;
+  bytes proof_of_ident = 5;
+}
+
+// Client side response: get your updates. 
+message PendingData {
+  Identity ident = 1;
+  int64 since_utc = 2;
+  repeated RawMessage messages = 3;
+}
+
+// Start a conversation block. 
+message BlockStartRequest {
+  Identity from_ident = 1;
+  repeated Identity receiver_idents = 2;
+  string subject_matter = 3;
+  int32 priority = 4;
+  bytes block_id = 5;
+}
+
+// Response to the request. 
+message BlockStatusChangeResponse {
+  bool is_ok = 1;
+  string error_description = 2;
+}
+
+// Leave a conversation block. 
+message BlockLeaveRequest {
+  Identity from_ident = 1;
+  bytes block_id = 2;
+  bytes signature = 3;
+}
+
+// Ask about a name. 
+message NameInquiry {
+  Identity from_ident = 1;
+  Identity request_ident = 2;
+  bool ident_request = 3;
+  string request_handle = 4;
+  string request_domain = 5;
+}
+
+// Name response.
+message NameResponse {
+  bool is_error = 1;
+  Identity name = 2;
+  string profile_url = 4;
+}
+
+enum MessageType { 
+  PLAIN = 0;
+  QUESTION = 1;
+  RICH_MEDIA = 2;
+  LINK = 3;
+  OTHER = 20; 
+}
+
+// Send raw message. 
+message RawMessage {
+  Identity from_ident = 1;
+  repeated Identity to_ident = 2;
+  bytes block_id = 3;
+  MessageType msg_type = 4;
+  bytes message_content = 6;
+  bytes msg_id = 5;
+  bytes signature = 7;
+  int64 tstamp = 8;
+  bytes sym_key = 9;
+  bytes nonce = 10;
+}
+
+// The basic ACK.
+message MessageAck {
+  bool is_error = 1;
+  string error = 2;
+}
+
+// The request message for user permissions.
+message RequestPermissions {
+  Identity to_ident = 1;
+  UserPermissions requested_permissions = 2;
+  bytes signature = 3;
+}
+
+// Approve permissions 
+message ApprovePermissions {
+  Identity from_ident = 1;
+  UserPermissions granted_permissions = 10;
+  bytes signature = 11;
+}
+
+// Permissions for a user 
+message UserPermissions {
+  Identity ident = 1;
+  string set_name = 3;
+  int32 max_priority = 4;
+  bool permission_personal = 11;
+  bool permission_family = 12;
+  bool permission_colleague = 13;
+  bool permission_business = 14;
+  bool permission_customer = 15;
+  bool permission_vendor = 16;
+}
+
+message CodeShare {
+  string code = 1;
+  int64 timestamp = 2;
+  string note = 3;
+  string language = 4;
+  bytes re_msg_id = 5;
+  repeated string project_tags = 7;
+}
+
+enum TaskStatus { 
+  NOT_STARTED = 0;
+  STAGING = 1;
+  IN_PROGRESS = 2;
+  BLOCKED = 3;
+  DONE = 4;
+  NOT_DOING = 5; 
+}
+
+message TaskAssign {
+  string subject = 1;
+  int64 timestamp = 2;
+  string description = 3;
+  int64 due_time = 4;
+  int32 priority = 5;
+  bytes re_msg_id = 6;
+  int32 status = 7;
+  repeated string project_tags = 10;
+}
+
+message Invitation {
+  string subject = 1;
+  int64 timestamp = 2;
+  string note = 3;
+  int64 event_time = 4;
+  bytes re_msg_id = 5;
+}
+
+message PersonalNote {
+  string subject = 1;
+  int64 timestamp = 2;
+  string note = 3;
+  bytes msg_id = 4;
+  bytes re_msg_id = 5;
+  int32 priority = 6;
+}
+
