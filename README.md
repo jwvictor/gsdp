@@ -4,13 +4,13 @@
 
 ### Introduction
 
-GSDP is based on an idea I had to build a new communications protocol for structured messages, primarily inspired by Paul Graham's essay on frighteningly big ideas. Both developmnt and feature planning are in their infancy, and I haven't thought entirely through what kind of structured messaging would be useful in both the work and personal spheres. My hope is to develop a system that is scalable, secure, and makes communication within and across organizations and groups efficient and seamless. 
+GSDP is based on an idea I had to build a new communications protocol for structured messages, primarily inspired by Paul Graham's essay on frighteningly big ideas. Both development and feature planning are in their infancy, and I haven't thought entirely through what kind of structured messaging would be useful in both the work and personal spheres. My hope is to develop a system that is scalable, secure, and makes communication within and across organizations and groups efficient and seamless. 
 
 ### Techincal description
 
-GSDP is an open-source protocol for the communication of "structured messages" (discussed later). It can be run privately on any domain (much like email) and communication can take place both within a domain and across domains. Unlike email, this is accomplished by running a single daemon -- there is no complex web of old tech that causes everyone to just pay the $5 for gSuite. Unlike Slack, inter-domain communication is a key functional point. And unlike both, the protocol is based around the idea of having a sophisticated, modern client application, capable of making sense of enormous information inflows by way of detailed semantic markup in the structure of the message.
+GSDP is a protocol for the communication of "structured messages" (discussed later). It can be run privately on any domain (much like email) and communication can take place both within a domain and across domains. Unlike email, this is accomplished by running a single daemon -- there is no complex web of old tech that causes everyone to just pay the $5 for gSuite. Unlike Slack, inter-domain communication is a key functional point. And unlike both, the protocol is based around the idea of having a sophisticated, modern client application, capable of making sense of enormous information inflows by way of detailed semantic markup in the structure of the message.
 
-To be clear, GSDP is in no way an aggregator of other things. It is its own, separate protocol. It is also *not* meant to be an email or Slack clone. The messages are highly structured, unlike these platforms, whereupon the messages are largely unstructured.
+To be clear, GSDP is in no way an aggregator of other things. It is its own, separate protocol. It is also *not* meant to be an email or Slack clone. The messages are highly structured, unlike these platforms, wherein the messages are largely unstructured.
 
 Furthermore, GSDP implements a cryptographically-secured identity system that makes it easy to keep in touch with contacts if they move domains (e.g. companies), restrict identity lookups via privacy settings, and classify different contacts into different "buckets," each with a logical set of permissions (e.g. your boss can't send you a personal message, but your friend can't assign your work). It is, furthermore, the basis upon which an admin permits an address for a given user on their GSDP server -- they register their public identity (a byte stream that includes, among other things, a public key) with their GSDP server.
 
@@ -34,7 +34,7 @@ This puts us very far from even a 0.1-alpha type release, so *contributors welco
 
 ### This implementation
 
-This implementation is based on Google's protobuf/gRPC stack and provides two things:
+The protocol is based on Google's protobuf/gRPC stack. This is an open-source implementation of a GSDP server with minimal capabilities. Most importantly, it provides two things:
 
 1. The proto3 definition needed to generate bindings for a variety of modern languages; and
 2. A definition (in code, no spec yet -- sorry) of how the application should work. This is a golang implementation.
@@ -43,13 +43,15 @@ That said, it is the most barebones of implementations. It is CLI-only, and can 
 
 ### Contributor instructions
 
-Setup isn't really setup just yet (no pun intended). The easiest way is to `go get` this repo, `cd` into it, and run `make`. Then `cd` into the `driver` directory and run `make` to build the driver. This will generate a separate repo for just the generated protocol code. Test scripts are there for you to use the driver.
+Setup isn't really setup just yet (no pun intended). The easiest way is to `go get` this repo, `cd` into it, and run `make`. Then `cd` into the `cli` directory and run `make` to build the `gsdpcli` tool. Note: this will generate a separate repo for just the generated protocol code. 
 
-You'll probably want to make a `~/.gsdp.toml` file with an appropriate identity directory and root identity file path, so you don't have to deal with CLI flags or environment variables. (See the sample in `driver`.) Use the `domain_newid.sh` script to generate your first (root) identity that the server will run under for your domain.
-
-This assumes you have the gRPC and protobuf compilers installed (if you don't, they're deps you'll need for compilation). If you need to get this stuff, follow the golang instructions at `grpc.io`.
+You'll probably want to make a `~/.gsdp.toml` file with an appropriate identity directory -- and if the server will also be used as a client, an identity path -- so you don't have to deal with CLI flags or environment variables. The key operations are `serve` (to start a server), and on the client side, `say`, `ls`, `pop`, and `newid`. All subcommands have their own help available: for example, `./gsdpcli newid -help` will provide the arguments for the `newid` subcommand (which creates a new identity). Similarly, `say` sends a text message and `ls` lists messages. 
 
 After you're setup, just shoot a pull request my way!
+
+#### Dependencies
+
+The compliation instructions assume you have the gRPC and protobuf compilers installed (if you don't, they're deps you'll need for compilation). If you need to get this stuff, follow the golang instructions at `grpc.io`.
 
 ### Shortcomings list 
 
